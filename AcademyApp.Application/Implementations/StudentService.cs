@@ -1,16 +1,30 @@
-﻿using AcademyApp.Application.Interfaces;
+﻿using AcademyApp.Application.Dtos.StudentDtos;
+using AcademyApp.Application.Exceptions;
+using AcademyApp.Application.Interfaces;
 using AcademyApp.Core.Entities;
 using AcademyApp.Data.Data;
+using AutoMapper;
+using Microsoft.EntityFrameworkCore;
 
 namespace AcademyApp.Application.Implementations
 {
-    public class StudentService : IStudentService
+    public class StudentService(AcademyAppContext _appContext,IMapper _mapper) : IStudentService
     {
-        private readonly AcademyAppContext _appContext;
 
-        public StudentService(AcademyAppContext appContext)
+        public async Task<int> CreateAsync(StudentCreateDto studentCreateDto)
         {
-            _appContext = appContext;
+            var existGroup = await _appContext.Groups
+                .Include(g=>g.Students)
+                .SingleOrDefaultAsync(g => g.Id == studentCreateDto.GroupId);
+            if (existGroup is null)
+                throw new EntityNotFoundException("group not found");
+            if (existGroup.Limit <= existGroup.Students.Count())
+                throw new LimitEntityException("Group limit is reached..");
+
+            Student student = _mapper.Map<Student>(studentCreateDto);
+            _appContext.Students.Add(student);
+            await _appContext.SaveChangesAsync();
+            return student.Id;
         }
 
         public List<Student> GetAll()

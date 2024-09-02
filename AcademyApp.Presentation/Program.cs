@@ -1,6 +1,7 @@
 using AcademyApp.Application.Dtos.GroupDtos;
 using AcademyApp.Application.Implementations;
 using AcademyApp.Application.Interfaces;
+using AcademyApp.Application.Profiles;
 using AcademyApp.Data.Data;
 using FluentValidation;
 using FluentValidation.AspNetCore;
@@ -32,6 +33,10 @@ builder.Services.AddValidatorsFromAssemblyContaining<GroupCreateDtoValidator>();
 
 builder.Services.AddFluentValidationRulesToSwagger();
 
+builder.Services.AddAutoMapper(opt =>
+{
+    opt.AddProfile(new MapperProfile());
+});
 
 
 var app = builder.Build();
